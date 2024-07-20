@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mess Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: beige;
+        }
+
+        
+        .food-mess-profile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .photo img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            text-align: center;
+        }
+
+        .details h1 {
+            margin: 0;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .details p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+        .details p span {
+            font-weight: bold;
+        }
+
+        .btn-group {
+            margin-top: 20px;
+        }
+
+        .pricing {
+            display: flex;
+            text-align: center;
+            justify-content: center;
+            justify-content: space-evenly;
+            margin-top: 20px;
+        }
+
+        .pricing div {
+            flex: 1;
+        }
+
+        .enroll-btn {
+            margin-top: 20px;
+        }
+
+        .footer {
+            background-color: #333;
+            color: #fff;
+            padding: 50px 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h2 {
+            color: #fff;
+        }
+
+        .footer-section p {
+            color: #ccc;
+        }
+
+        .footer-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        .footer-section a:hover {
+            color: #fff;
+        }
+
+        .footer-bottom {
+            background-color: #222;
+            text-align: center;
+            padding: 10px 0;
+            color: #ccc;
+        }
+
+        .back {
+            background-color: #222;
+        }
+    </style>
+</head>
+<body>
+   
+    <ul class="nav justify-content-end fixed-top">
+        <li class="nav-item me-4 mt-2">
+            <button type="button" class="btn btn-outline-success">Dashboard</button>
+        </li>
+        <li class="nav-item me-4 mt-2">
+            <button type="button" class="btn btn-outline-primary">Home</button>
+        </li>
+    </ul>
+
+   
+    <section class="food-mess-profile border">
+        <?php
+               // Establish database connection
+        $conn = new mysqli('localhost', 'root', '', 'mess');
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
+        // Retrieve mess ID from URL
+        $mess_id = $_GET['mess_id'] ?? null;
+        if (!$mess_id) {
+            echo "Mess ID not provided!";
+            exit;
+        }
+
+        // Fetch mess details from the database
+        $sql = "SELECT * FROM mess WHERE mess_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $mess_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            ?>
+            <div class="photo">
+                <img src="<?php echo $row['image1']; ?>" alt="Mess Photo">
+            </div>
+            <div class="details">
+                <h1><?php echo $row['mess_name']; ?></h1>
+                <p>Owner: <?php echo $row['owner_name']; ?></p>
+                <p>Location: <?php echo $row['location']; ?></p>
+               
+
+                <?php
+                // Fetch pricing details from the Pricing table
+                $sql = "SELECT * FROM Pricing WHERE mess_id = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $mess_id);
+                $stmt->execute();
+                $pricing_result = $stmt->get_result();
+                if ($pricing_result->num_rows > 0) {
+                    $pricing_row = $pricing_result->fetch_assoc();
+                    ?>
+                    <div class="pricing">
+                        <div>
+                            <p>One Time Price: <span><?php echo $pricing_row['price_1_time']; ?></span></p>
+                            <p>15 Days Price: <span><?php echo $pricing_row['price_15_days']; ?></span></p>
+                            <p>30 Days Price: <span><?php echo $pricing_row['price_30_days']; ?></span></p>
+                            <p>6 Months Price: <span><?php echo $pricing_row['price_6_months']; ?></span></p>
+                        </div>
+                    </div>
+                    <?php
+                } else {
+                    echo "Pricing not found!";
+                }
+                ?>
+<div class="btn-group">
+    <button type="button" class="btn btn-success">Action</button>
+    <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+    
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item" href="#">15 Days</a></li>
+      <li><a class="dropdown-item" href="#">20 Days</a></li>
+      <li><a class="dropdown-item" href="#">1 Month</a></li>
+      
+    </ul>
+  </div>
+             
+                <div class="enroll-btn">
+                    <button type="button" class="btn btn-primary">Enroll</button>
+                </div>
+            </div>
+            <?php
+        } else {
+            echo "No mess found!";
+        }
+
+        // Close database connection
+        $conn->close();
+       
+        ?>
+    </section>
+
+   
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section about">
+                    <h2>About Us</h2>
+                    <p>Your mess management system website provides easy solutions for managing meals, payments, and more.</p>
+                </div>
+                <div class="footer-section contact">
+                    <h2>Contact Us</h2>
+                    <p>Email: info@messmanagement.com</p>
+                    <p>Phone: +1 (123) 456-7890</p>
+                </div>
+                <div class="footer-section links">
+                    <h2>Quick Links</h2>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Services</a></li>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2024 Mess Management System. All rights reserved.
+        </div>
+    </footer>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
